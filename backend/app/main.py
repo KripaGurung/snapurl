@@ -13,4 +13,4 @@ app.include_router(shortener_router)
 
 @app.get("/")
 def root():
-    return {"message": "SnapUrl backend is running successfully."}
+    return {"message": "SnapUrl backend is running 🚀"}
