@@ -1,6 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from .db import engine
+from fastapi.responses import RedirectResponse
+from sqlalchemy.orm import Session
+
+from .db import engine, get_db
 from . import models
 from .auth.routes import router as auth_router
 from .shortener.routes import router as shortener_router
@@ -20,6 +23,26 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(shortener_router)
 
+
+@app.get("/{short_code}")
+def redirect_short_url(
+    short_code: str,
+    db: Session = Depends(get_db)
+):
+    url = db.query(models.ShortURL).filter(
+        models.ShortURL.short_code == short_code,
+        models.ShortURL.is_active == True
+    ).first()
+
+    if not url:
+        raise HTTPException(status_code=404, detail="Short URL not found")
+
+    url.clicks += 1
+    db.commit()
+
+    return RedirectResponse(url.original_url)
+
+
 @app.get("/")
 def root():
-    return {"message": "SnapUrl backend is running 🚀"}
+    return {"message": "SnapUrl backend is running successfully."}
