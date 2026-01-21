@@ -1,5 +1,6 @@
 import { useState } from "react";
 import api from "../services/api";
+import "./CreateUrl.css";
 
 function CreateUrl() {
   const [url, setUrl] = useState("");
@@ -31,17 +32,22 @@ function CreateUrl() {
   };
 
   return (
-    <div style={{ marginTop: "50px", textAlign: "center" }}>
-
+    <div className="createUrlContainer">
       <h2>Create Short URL</h2>
 
-      <input type="text" placeholder="Enter long URL" onChange={(e) => setUrl(e.target.value)} />
-
-      <br /><br />
+      <input
+        type="text"
+        placeholder="Enter long URL"
+        onChange={(e) => setUrl(e.target.value)}
+      />
 
       <button onClick={handleCreate}>Shorten</button>
 
-      {shortUrl && ( <p> Short URL: <a href={shortUrl}>{shortUrl}</a> </p> )}
+      {shortUrl && (
+        <p className="result">
+          Short URL: <a href={shortUrl}>{shortUrl}</a>
+        </p>
+      )}
     </div>
   );
 }

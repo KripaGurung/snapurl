@@ -1,28 +1,59 @@
-.create-box {
-    background: white;
-    width: 300px;
-    padding: 20px;
-    margin: 40px auto;
-    border-radius: 6px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.create-box h2 {
+.createUrlContainer {
+    max-width: 420px;
+    margin: 80px auto;
+    padding: 30px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
     text-align: center;
-    margin-bottom: 15px;
 }
 
-.create-box input {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
+.createUrlContainer h2 {
+    margin-bottom: 25px;
+    color: #222;
 }
 
-.create-box button {
+.createUrlContainer input {
     width: 100%;
-    padding: 8px;
-    background: blue;
-    color: white;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    outline: none;
+}
+
+.createUrlContainer input:focus {
+    border-color: #4f46e5;
+}
+
+.createUrlContainer button {
+    margin-top: 18px;
+    width: 100%;
+    padding: 12px;
+    background: #4f46e5;
+    color: #fff;
     border: none;
+    border-radius: 8px;
+    font-size: 15px;
     cursor: pointer;
+    transition: 0.3s;
+}
+
+.createUrlContainer button:hover {
+    background: #4338ca;
+}
+
+.result {
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.result a {
+    color: #4f46e5;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.result a:hover {
+    text-decoration: underline;
 }

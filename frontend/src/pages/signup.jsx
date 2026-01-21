@@ -1,30 +1,33 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import "./signup.css";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleSignup = async () => {
     try {
-      await api.post("/auth/signup", { email, password });
+      const response = await api.post("/auth/signup", { email, password });
+      console.log("Registered successfully:", response.data);
       alert("Signup successful!");
-    } catch {
+      navigate("/");
+    } catch (error) {
+      console.error("Signup failed:", error.response?.data || error.message);
       alert("Signup failed");
     }
   };
 
   return (
     <div className="signup-wrapper">
-
       <div className="signup-card">
         <h2 className="signup-title">Registration Form</h2>
 
         <div className="input-group">
           <label>Email</label>
-          <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
+          <input   type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
         </div>
 
         <div className="input-group">
