@@ -7,47 +7,55 @@ function CreateUrl() {
   const [shortUrl, setShortUrl] = useState("");
 
   const handleCreate = async () => {
-    const token = localStorage.getItem("token");
+  console.log("Create button clicked");
 
-    if (!token) {
-      alert("Please login first");
-      return;
-    }
+  const token = localStorage.getItem("token");
+  console.log("Token:", token);
 
-    try {
-      const res = await api.post(
-        "/urls/",
-        { original_url: url },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+  if (!token) {
+    alert("Please login first");
+    return;
+  }
 
-      setShortUrl(res.data.short_url);
-    } catch {
-      alert("Error creating short URL");
-    }
-  };
+  if (!url.trim()) {
+    alert("Please enter a URL");
+    return;
+  }
+
+  try {
+    const res = await api.post(
+      "/urls/",
+      { original_url: url },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("Short URL response:", res.data);
+    setShortUrl(res.data.short_url);
+  } catch (err) {
+    console.error(
+      "Create URL error:",
+      err.response?.data || err.message
+    );
+    alert("Error creating short URL");
+  }
+};
+
 
   return (
     <div className="createUrlContainer">
       <h2>Create Short URL</h2>
 
-      <input
-        type="text"
-        placeholder="Enter long URL"
-        onChange={(e) => setUrl(e.target.value)}
-      />
+      <label>Enter URL</label>
+      <input type="text" placeholder="Enter long URL" onChange={(e) => setUrl(e.target.value)} />
 
       <button onClick={handleCreate}>Shorten</button>
 
-      {shortUrl && (
-        <p className="result">
-          Short URL: <a href={shortUrl}>{shortUrl}</a>
-        </p>
-      )}
+      {shortUrl && ( <p className="result"> Short URL: <a href={shortUrl}>{shortUrl}</a> </p> )}
     </div>
   );
 }

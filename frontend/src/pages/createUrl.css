@@ -13,6 +13,15 @@
     color: #222;
 }
 
+.createUrlContainer label {
+    display: block;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 500;
+    color: #444;
+    margin-bottom: 6px;
+}
+
 .createUrlContainer input {
     width: 100%;
     padding: 12px 14px;
@@ -20,6 +29,7 @@
     border: 1px solid #ddd;
     font-size: 14px;
     outline: none;
+    margin-bottom: 18px;
 }
 
 .createUrlContainer input:focus {
