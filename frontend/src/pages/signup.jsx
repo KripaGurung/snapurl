@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../services/api";
 import "./signup.css";
 
@@ -8,10 +9,7 @@ const Signup = () => {
 
   const handleSignup = async () => {
     try {
-      await api.post("/auth/signup", {
-        email,
-        password,
-      });
+      await api.post("/auth/signup", { email, password });
       alert("Signup successful!");
     } catch {
       alert("Signup failed");
@@ -19,19 +17,27 @@ const Signup = () => {
   };
 
   return (
-    <div className="signup-box">
-      <h2>Signup</h2>
+    <div className="signup-wrapper">
 
-      <label>Email</label>
-      <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
+      <div className="signup-card">
+        <h2 className="signup-title">Registration Form</h2>
 
-      <label>Password</label>
-      <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
-      
-      <button onClick={handleSignup}>Signup</button>
+        <div className="input-group">
+          <label>Email</label>
+          <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
+        </div>
 
+        <div className="input-group">
+          <label>Password</label>
+          <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
+        </div>
+
+        <button className="signup-btn" onClick={handleSignup}> Signup </button>
+
+        <p className="signup-footer"> Already have an account? <Link to="/">Login</Link> </p>
+      </div>
     </div>
   );
-}
+};
 
 export default Signup;
