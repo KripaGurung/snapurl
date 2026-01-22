@@ -23,6 +23,9 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(shortener_router)
 
+@app.get("/")
+def root():
+    return {"message": "SnapUrl backend is running successfully."}
 
 @app.get("/{short_code}")
 def redirect_short_url(
@@ -41,8 +44,3 @@ def redirect_short_url(
     db.commit()
 
     return RedirectResponse(url.original_url)
-
-
-@app.get("/")
-def root():
-    return {"message": "SnapUrl backend is running successfully."}

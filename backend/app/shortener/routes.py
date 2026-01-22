@@ -23,7 +23,7 @@ def create_short_url(
     short_url = ShortURL(
         original_url=data.original_url,
         short_code=short_code,
-        owner=user
+        user_id=user.id   # 🔥 FIX HERE
     )
 
     db.add(short_url)
