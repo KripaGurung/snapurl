@@ -5,46 +5,35 @@ import "./CreateUrl.css";
 function CreateUrl() {
   const [url, setUrl] = useState("");
   const [shortUrl, setShortUrl] = useState("");
+  const [shortCode, setShortCode] = useState("");
+  const [showQR, setShowQR] = useState(false);
 
   const handleCreate = async () => {
-  console.log("Create button clicked");
+    const token = localStorage.getItem("token");
 
-  const token = localStorage.getItem("token");
-  console.log("Token:", token);
+    if (!token) {
+      alert("Please login first");
+      return;
+    }
 
-  if (!token) {
-    alert("Please login first");
-    return;
-  }
+    try {
+      const res = await api.post(
+        "/urls/",
+        { original_url: url },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-  if (!url.trim()) {
-    alert("Please enter a URL");
-    return;
-  }
-
-  try {
-    const res = await api.post(
-      "/urls/",
-      { original_url: url },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    console.log("Short URL response:", res.data);
-    setShortUrl(res.data.short_url);
-  } catch (err) {
-    console.error(
-      "Create URL error:",
-      err.response?.data || err.message
-    );
-    alert("Error creating short URL");
-  }
-};
-
+      alert("URL shortened successfully");
+      setShortUrl(res.data.short_url);
+      setShortCode(res.data.short_code);
+    } catch {
+      alert("Error creating short URL");
+    }
+  };
 
   return (
     <div className="createUrlContainer">
@@ -55,7 +44,16 @@ function CreateUrl() {
 
       <button onClick={handleCreate}>Shorten</button>
 
-      {shortUrl && ( <p className="result"> Short URL: <a href={shortUrl}>{shortUrl}</a> </p> )}
+      {shortUrl && (
+        <>
+          <p className="result"> Short URL: <a href={shortUrl}>{shortUrl}</a> </p>
+
+          <button onClick={() => setShowQR(true)}> Generate QR </button>
+        </>
+      )}
+
+      {showQR && ( <img src={`http://127.0.0.1:8000/urls/${shortCode}/qr`} alt="QR Code" width="200" />
+      )}
     </div>
   );
 }

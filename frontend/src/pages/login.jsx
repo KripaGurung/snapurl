@@ -8,15 +8,29 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
-    try {
-      const response = await api.post("/auth/login", { email, password });
-      localStorage.setItem("token", response.data.access_token);
-      navigate("/create");
-    } catch {
-      alert("Login failed");
-    }
-  };
+const handleLogin = async () => {
+  try {
+    const formData = new URLSearchParams();
+    formData.append("username", email);
+    formData.append("password", password);
+
+    const response = await api.post(
+      "/auth/login",
+      formData,
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+
+    localStorage.setItem("token", response.data.access_token);
+    navigate("/create");
+  } catch (error) {
+    console.error(error);
+    alert("Login failed");
+  }
+};
 
   return (
     <div className="login-wrapper">
