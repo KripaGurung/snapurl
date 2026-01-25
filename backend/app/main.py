@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 from .db import engine, get_db
 from . import models
@@ -23,9 +24,11 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(shortener_router)
 
+
 @app.get("/")
 def root():
     return {"message": "SnapUrl backend is running successfully."}
+
 
 @app.get("/{short_code}")
 def redirect_short_url(
@@ -44,3 +47,21 @@ def redirect_short_url(
     db.commit()
 
     return RedirectResponse(url.original_url)
+
+@app.get("/q/{token}")
+def scan_qr(token: str, db: Session = Depends(get_db)):
+    qr = db.query(models.QRToken).filter(
+        models.QRToken.token == token
+    ).first()
+
+    if not qr:
+        raise HTTPException(status_code=404, detail="Invalid QR")
+
+    if qr.expires_at < datetime.utcnow():
+        return {"message": "QR expired"}
+
+    short = db.query(models.ShortURL).filter(
+        models.ShortURL.id == qr.short_url_id
+    ).first()
+
+    return RedirectResponse(short.original_url)
