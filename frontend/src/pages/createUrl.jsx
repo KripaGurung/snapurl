@@ -65,17 +65,32 @@ function CreateUrl() {
     }
   };
 
-  const generateMessageQR = async () => {
+   const generateMessageQR = async () => {
     if (!msgType || !msgContent.trim()) {
       alert("Select message type and write message");
       return;
     }
 
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      alert("Please login first");
+      navigate("/login");
+      return;
+    }
+
     try {
-      const res = await api.post("/messages/", {
-        type: msgType,
-        content: msgContent,
-      });
+      const res = await api.post(
+        "/messages/",
+        {
+          type: msgType,
+          content: msgContent,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       setMsgQrUrl(res.data.qr_url);
     } catch (err) {
