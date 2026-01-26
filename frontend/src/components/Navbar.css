@@ -1,0 +1,43 @@
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.navbar-logo {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.user-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.navbar .login-btn {
+    width: auto !important;
+    padding: 6px 16px;
+    border: none;
+    border-radius: 6px;
+    background-color: #4f6ef7;
+    color: white;
+    cursor: pointer;
+}
+
+.navbar .logout-btn {
+    width: auto !important;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 6px;
+    border-radius: 6px;
+    background-color: #dc3545;
+    color: white;
+    cursor: pointer;
+}
+
+.username {
+    font-weight: 500;
+}

@@ -24,8 +24,10 @@ const Login = () => {
         }
       );
 
-      localStorage.setItem("token", response.data.access_token);
-      navigate("/create");
+      localStorage.setItem("access_token", response.data.access_token);
+      localStorage.setItem("user_email", email);
+
+      navigate("/");
     } catch (error) {
       console.error(error);
       alert("Login failed");
