@@ -1,42 +1,53 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from ..db import SessionLocal
+from ..db import get_db
 from ..models import User
 from .utils import hash_password, verify_password
 from .jwt import create_access_token
-from .schemas import SignupRequest, LoginRequest
+from fastapi.security import OAuth2PasswordRequestForm
+from .schemas import SignupRequest
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
-@router.post("/signup")
-def signup(data: SignupRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == data.email).first()
-    if user:
-        raise HTTPException(status_code=400, detail="User already exists")
+@router.post("/signup", status_code=201)
+def signup(
+    data: SignupRequest,
+    db: Session = Depends(get_db)
+):
+    existing = db.query(User).filter(User.email == data.email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
 
-    new_user = User(
+    user = User(
         email=data.email,
         hashed_password=hash_password(data.password)
     )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
 
-    return {"message": "User created successfully"}
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return {"message": "Signup successful"}
+
 
 @router.post("/login")
-def login(data: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == data.email).first()
-    if not user or not verify_password(data.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.email == form_data.username).first()
 
-    token = create_access_token({"sub": user.email})
-    return {"access_token": token, "token_type": "bearer"}
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
+
+    access_token = create_access_token({"sub": str(user.id)})
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
+    }

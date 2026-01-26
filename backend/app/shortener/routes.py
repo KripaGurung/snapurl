@@ -10,24 +10,28 @@ from .schemas import ShortURLCreate
 from ..db import get_db
 from ..models import ShortURL, QRToken
 from ..auth.deps import get_current_user
+from ..models import User
 
 router = APIRouter(
     prefix="/urls",
     tags=["Shortener"]
 )
 
+BASE_URL = "http://127.0.0.1:8000"
+
+
 @router.post("/")
 def create_short_url(
     data: ShortURLCreate,
     db: Session = Depends(get_db),
-    user=Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     short_code = generate_short_code()
 
     short_url = ShortURL(
         original_url=data.original_url,
         short_code=short_code,
-        user_id=user.id
+        user_id=current_user.id
     )
 
     db.add(short_url)
@@ -36,18 +40,18 @@ def create_short_url(
 
     return {
         "short_code": short_code,
-        "short_url": f"http://127.0.0.1:8000/{short_code}"
+        "short_url": f"{BASE_URL}/s/{short_code}"
     }
+
 
 @router.get("/{short_code}/qr")
 def generate_qr(
     short_code: str,
     db: Session = Depends(get_db),
-    user=Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     short = db.query(ShortURL).filter(
-        ShortURL.short_code == short_code,
-        ShortURL.user_id == user.id
+        ShortURL.short_code == short_code
     ).first()
 
     if not short:
@@ -58,14 +62,14 @@ def generate_qr(
     qr_entry = QRToken(
         token=token,
         short_url_id=short.id,
-        owner_id=user.id,
+        owner_id=current_user.id,
         expires_at=qr_expiry()
     )
 
     db.add(qr_entry)
     db.commit()
 
-    qr_link = f"http://127.0.0.1:8000/q/{token}"
+    qr_link = f"{BASE_URL}/q/{token}"
 
     img = qrcode.make(qr_link)
     buf = BytesIO()
@@ -73,6 +77,7 @@ def generate_qr(
     buf.seek(0)
 
     return StreamingResponse(buf, media_type="image/png")
+
 
 @router.get("/q/{token}")
 def scan_qr(
@@ -87,4 +92,4 @@ def scan_qr(
     if not qr:
         raise HTTPException(status_code=404, detail="QR expired or invalid")
 
-    return RedirectResponse(url=qr.short_url.original_url)
+    return RedirectResponse(qr.short_url.original_url)

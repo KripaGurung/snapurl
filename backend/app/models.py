@@ -24,7 +24,7 @@ class ShortURL(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     owner = relationship("User", back_populates="urls")
     
 class QRToken(Base):
@@ -34,7 +34,7 @@ class QRToken(Base):
     token = Column(String, unique=True, index=True, nullable=False)
 
     short_url_id = Column(Integer, ForeignKey("short_urls.id"), nullable=False)
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
     expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
