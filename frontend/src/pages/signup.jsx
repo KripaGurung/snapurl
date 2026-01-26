@@ -8,15 +8,26 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleSignup = async () => {
+const handleSignup = async () => {
+    if (!email || !password) {
+      alert("Email and password are required");
+      return;
+    }
+
     try {
-      const response = await api.post("/auth/signup", { email, password });
+      const response = await api.post("/auth/signup", {
+        email,
+        password,
+      });
+
       console.log("Registered successfully:", response.data);
       alert("Signup successful!");
       navigate("/");
     } catch (error) {
-      console.error("Signup failed:", error.response?.data || error.message);
-      alert("Signup failed");
+      console.error("Signup failed:", error.response?.data);
+      alert(
+        error.response?.data?.detail || "Signup failed"
+      );
     }
   };
 
