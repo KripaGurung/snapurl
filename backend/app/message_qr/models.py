@@ -10,4 +10,6 @@ class MessageQR(Base):
     content = Column(Text, nullable=False)
     type = Column(String(20), nullable=False)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    expires_at = Column(DateTime(timezone=True), nullable=False) 
