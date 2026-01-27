@@ -22,7 +22,7 @@ const handleSignup = async () => {
 
       console.log("Registered successfully:", response.data);
       alert("Signup successful!");
-      navigate("/");
+      navigate("/login");
     } catch (error) {
       console.error("Signup failed:", error.response?.data);
       alert(

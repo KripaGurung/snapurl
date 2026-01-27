@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../services/api";
 import { useNavigate } from "react-router-dom";
+import { FiDownload, FiShare2 } from "react-icons/fi";
 import "./CreateUrl.css";
 
 function CreateUrl() {
@@ -15,6 +16,9 @@ function CreateUrl() {
 
   const navigate = useNavigate();
 
+  /* =====================
+     URL SHORTENER
+  ===================== */
   const handleCreate = async () => {
     const token = localStorage.getItem("access_token");
     if (!token) {
@@ -26,14 +30,8 @@ function CreateUrl() {
     try {
       const res = await api.post(
         "/urls/",
-        {
-          original_url: url,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { original_url: url },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setShortUrl(res.data.short_url);
@@ -51,9 +49,7 @@ function CreateUrl() {
     try {
       const res = await api.get(`/urls/${shortCode}/qr`, {
         responseType: "blob",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const imageURL = URL.createObjectURL(res.data);
@@ -65,7 +61,29 @@ function CreateUrl() {
     }
   };
 
-   const generateMessageQR = async () => {
+  const handleDownloadQR = () => {
+    const link = document.createElement("a");
+    link.href = qrImage;
+    link.download = `snapurl-${shortCode}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleShareQR = async () => {
+    if (navigator.share) {
+      await navigator.share({
+        title: "SnapUrl QR Code",
+        text: "Scan this QR to open the short URL",
+        url: shortUrl,
+      });
+    } else {
+      await navigator.clipboard.writeText(shortUrl);
+      alert("Short URL copied to clipboard!");
+    }
+  };
+
+  const generateMessageQR = async () => {
     if (!msgType || !msgContent.trim()) {
       alert("Select message type and write message");
       return;
@@ -81,21 +99,36 @@ function CreateUrl() {
     try {
       const res = await api.post(
         "/messages/",
-        {
-          type: msgType,
-          content: msgContent,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { type: msgType, content: msgContent },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setMsgQrUrl(res.data.qr_url);
     } catch (err) {
       console.error(err);
       alert("Failed to generate Message QR");
+    }
+  };
+
+  const handleDownloadMessageQR = () => {
+    const link = document.createElement("a");
+    link.href = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${msgQrUrl}`;
+    link.download = "snapurl-message-qr.png";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleShareMessageQR = async () => {
+    if (navigator.share) {
+      await navigator.share({
+        title: "SnapUrl Message QR",
+        text: "Scan this QR to view the message",
+        url: msgQrUrl,
+      });
+    } else {
+      await navigator.clipboard.writeText(msgQrUrl);
+      alert("Message QR link copied!");
     }
   };
 
@@ -119,7 +152,7 @@ function CreateUrl() {
               <>
                 <a href={shortUrl} target="_blank" rel="noreferrer" className="short-link"> {shortUrl} </a>
 
-                <button style={{ marginTop: "12px" }} onClick={() => setShowModal(true)} > Generate QR </button>
+                <button style={{ marginTop: "12px" }} onClick={() => setShowModal(true)}> Generate QR </button>
               </>
             ) : (
               <p className="muted">Your short URL will appear here</p>
@@ -130,8 +163,14 @@ function CreateUrl() {
         {qrImage && (
           <div className="qr-center">
             <div className="qr-box">
+              <p className="qr-title">QR for Short URL</p>
               <img src={qrImage} alt="QR Code" />
               <p>Scan to open original URL</p>
+
+              <div className="qr-actions">
+                <button onClick={handleDownloadQR}> <FiDownload /> </button>
+                <button onClick={handleShareQR}> <FiShare2 /> </button>
+              </div>
             </div>
           </div>
         )}
@@ -142,8 +181,8 @@ function CreateUrl() {
           <div className="modal">
             <h3>Do you want to generate QR?</h3>
             <div className="modal-buttons">
-              <button className="yes" onClick={generateQR}> Yes </button>
-              <button className="no" onClick={() => setShowModal(false)}> No </button>
+              <button className="yes" onClick={generateQR}>Yes</button>
+              <button className="no" onClick={() => setShowModal(false)}>No</button>
             </div>
           </div>
         </div>
@@ -155,11 +194,9 @@ function CreateUrl() {
 
         <div className="message-panel">
           <div className="message-actions">
-            <button className={msgType === "plain" ? "active" : ""} onClick={() => setMsgType("plain")}> Plain Text </button>
-
-            <button className={msgType === "note" ? "active" : ""} onClick={() => setMsgType("note")}> Note </button>
-
-            <button className={msgType === "alert" ? "active" : ""} onClick={() => setMsgType("alert")} > Alert </button>
+            <button className={msgType === "plain" ? "active" : ""} onClick={() => setMsgType("plain")}>Plain Text</button>
+            <button className={msgType === "note" ? "active" : ""} onClick={() => setMsgType("note")}>Note</button>
+            <button className={msgType === "alert" ? "active" : ""} onClick={() => setMsgType("alert")}>Alert</button>
           </div>
 
           <textarea className="message-input" placeholder="Add your text here..." disabled={!msgType} value={msgContent} onChange={(e) => setMsgContent(e.target.value)} />
@@ -170,8 +207,16 @@ function CreateUrl() {
         {msgQrUrl && (
           <div className="qr-center">
             <div className="qr-box">
+              <p className="qr-title">QR for Message</p>
+
               <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${msgQrUrl}`} alt="Message QR" />
+
               <p>Scan to view message</p>
+
+              <div className="qr-actions">
+                <button onClick={handleDownloadMessageQR}> <FiDownload /> </button>
+                <button onClick={handleShareMessageQR}> <FiShare2 /> </button>
+              </div>
             </div>
           </div>
         )}
