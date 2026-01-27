@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from io import BytesIO
 from fastapi.responses import StreamingResponse, RedirectResponse
 import qrcode
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from .utils import generate_short_code, generate_qr_token, qr_expiry
 from .schemas import ShortURLCreate
@@ -30,11 +30,13 @@ def create_short_url(
         original_url = "https://" + original_url
 
     short_code = generate_short_code()
+    expires_at = datetime.utcnow() + timedelta(days=7)
 
     short_url = ShortURL(
         original_url=original_url,
         short_code=short_code,
-        user_id=current_user.id
+        user_id=current_user.id,
+        expires_at=expires_at
     )
 
     db.add(short_url)
@@ -43,7 +45,8 @@ def create_short_url(
 
     return {
         "short_code": short_code,
-        "short_url": f"{BASE_URL}/s/{short_code}"
+        "short_url": f"{BASE_URL}/s/{short_code}",
+        "expires_at": expires_at
     }
 
 @router.get("/s/{short_code}")
@@ -57,6 +60,9 @@ def redirect_short_url(
 
     if not short:
         raise HTTPException(status_code=404, detail="Short URL not found")
+
+    if short.expires_at < datetime.utcnow():
+        raise HTTPException(status_code=410, detail="Short URL expired")
 
     return RedirectResponse(
         url=short.original_url,
@@ -75,6 +81,9 @@ def generate_qr(
 
     if not short:
         raise HTTPException(status_code=404, detail="Short URL not found")
+
+    if short.expires_at < datetime.utcnow():
+        raise HTTPException(status_code=410, detail="Short URL expired")
 
     token = generate_qr_token()
 
@@ -109,6 +118,9 @@ def scan_qr(
 
     if not qr:
         raise HTTPException(status_code=404, detail="QR expired or invalid")
+
+    if qr.short_url.expires_at < datetime.utcnow():
+        raise HTTPException(status_code=410, detail="Short URL expired")
 
     return RedirectResponse(
         url=qr.short_url.original_url,
