@@ -48,7 +48,7 @@ const handleSignup = async () => {
 
         <button className="signup-btn" onClick={handleSignup}> Signup </button>
 
-        <p className="signup-footer"> Already have an account? <Link to="/">Login</Link> </p>
+        <p className="signup-footer"> Already have an account? <Link to="/login">Login</Link> </p>
       </div>
     </div>
   );
