@@ -2,7 +2,7 @@ import { useState } from "react";
 import api from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { FiDownload, FiShare2 } from "react-icons/fi";
-import "./CreateUrl.css";
+import "./createUrl.css";
 
 function CreateUrl() {
   const [url, setUrl] = useState("");
@@ -16,9 +16,6 @@ function CreateUrl() {
 
   const navigate = useNavigate();
 
-  /* =====================
-     URL SHORTENER
-  ===================== */
   const handleCreate = async () => {
     const token = localStorage.getItem("access_token");
     if (!token) {
