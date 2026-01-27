@@ -103,18 +103,12 @@ function CreateUrl() {
     <div className="app-container">
       <section className="section url-section">
         <h1>URL Shortener</h1>
-        <p className="section-desc">
-          Convert long URLs into short, shareable links instantly.
-        </p>
+        <p className="section-desc"> Convert long URLs into short, shareable links instantly. </p>
 
         <div className="container">
           <div className="card">
             <h2>Enter URL</h2>
-            <input
-              placeholder="Paste your long URL here..."
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-            />
+            <input placeholder="Paste your long URL here..." value={url} onChange={(e) => setUrl(e.target.value)} />
             <button onClick={handleCreate}>Convert</button>
           </div>
 
@@ -123,21 +117,9 @@ function CreateUrl() {
 
             {shortUrl ? (
               <>
-                <a
-                  href={shortUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="short-link"
-                >
-                  {shortUrl}
-                </a>
+                <a href={shortUrl} target="_blank" rel="noreferrer" className="short-link"> {shortUrl} </a>
 
-                <button
-                  style={{ marginTop: "12px" }}
-                  onClick={() => setShowModal(true)}
-                >
-                  Generate QR
-                </button>
+                <button style={{ marginTop: "12px" }} onClick={() => setShowModal(true)} > Generate QR </button>
               </>
             ) : (
               <p className="muted">Your short URL will appear here</p>
@@ -160,12 +142,8 @@ function CreateUrl() {
           <div className="modal">
             <h3>Do you want to generate QR?</h3>
             <div className="modal-buttons">
-              <button className="yes" onClick={generateQR}>
-                Yes
-              </button>
-              <button className="no" onClick={() => setShowModal(false)}>
-                No
-              </button>
+              <button className="yes" onClick={generateQR}> Yes </button>
+              <button className="no" onClick={() => setShowModal(false)}> No </button>
             </div>
           </div>
         </div>
@@ -173,58 +151,26 @@ function CreateUrl() {
 
       <section className="section message-section">
         <h1>Message QR</h1>
-        <p className="section-desc">
-          Write a message and generate a QR code that displays it when scanned.
-        </p>
+        <p className="section-desc"> Write a message and generate a QR code that displays it when scanned. </p>
 
         <div className="message-panel">
           <div className="message-actions">
-            <button
-              className={msgType === "plain" ? "active" : ""}
-              onClick={() => setMsgType("plain")}
-            >
-              Plain Text
-            </button>
+            <button className={msgType === "plain" ? "active" : ""} onClick={() => setMsgType("plain")}> Plain Text </button>
 
-            <button
-              className={msgType === "note" ? "active" : ""}
-              onClick={() => setMsgType("note")}
-            >
-              Note
-            </button>
+            <button className={msgType === "note" ? "active" : ""} onClick={() => setMsgType("note")}> Note </button>
 
-            <button
-              className={msgType === "alert" ? "active" : ""}
-              onClick={() => setMsgType("alert")}
-            >
-              Alert
-            </button>
+            <button className={msgType === "alert" ? "active" : ""} onClick={() => setMsgType("alert")} > Alert </button>
           </div>
 
-          <textarea
-            className="message-input"
-            placeholder="Add your text here..."
-            disabled={!msgType}
-            value={msgContent}
-            onChange={(e) => setMsgContent(e.target.value)}
-          />
+          <textarea className="message-input" placeholder="Add your text here..." disabled={!msgType} value={msgContent} onChange={(e) => setMsgContent(e.target.value)} />
 
-          <button
-            className="generate-message-btn"
-            onClick={generateMessageQR}
-            disabled={!msgType || !msgContent.trim()}
-          >
-            Generate Message QR
-          </button>
+          <button className="generate-message-btn" onClick={generateMessageQR} disabled={!msgType || !msgContent.trim()}> Generate Message QR </button>
         </div>
 
         {msgQrUrl && (
           <div className="qr-center">
             <div className="qr-box">
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${msgQrUrl}`}
-                alt="Message QR"
-              />
+              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${msgQrUrl}`} alt="Message QR" />
               <p>Scan to view message</p>
             </div>
           </div>
