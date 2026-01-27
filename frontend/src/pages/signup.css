@@ -1,3 +1,8 @@
+html,
+body {
+    height: 100%;
+}
+
 * {
     box-sizing: border-box;
     font-family: "Segoe UI", Arial, sans-serif;
@@ -13,6 +18,7 @@
 .signup-card {
     width: 100%;
     max-width: 420px;
+    background: #fff;
     padding: 32px;
     border-radius: 12px;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
