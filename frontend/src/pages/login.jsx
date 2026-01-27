@@ -27,7 +27,7 @@ const Login = () => {
       localStorage.setItem("access_token", response.data.access_token);
       localStorage.setItem("user_email", email);
 
-      navigate("/create", { replace: true });
+      navigate("/", { replace: true });
     } catch (error) {
       console.error(error);
       alert("Login failed");
