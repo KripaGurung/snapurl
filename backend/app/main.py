@@ -28,7 +28,7 @@ app.include_router(message_qr_router)
 
 @app.get("/")
 def root():
-    return {"message": "SnapUrl backend running"}
+    return {"status": "FastAPI backend running!"}
 
 @app.get("/s/{short_code}")
 def redirect_short_url(
