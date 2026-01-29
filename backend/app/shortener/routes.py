@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from io import BytesIO
-from fastapi.responses import StreamingResponse, RedirectResponse
-import qrcode
+from fastapi.responses import StreamingResponse
 from datetime import datetime, timedelta
+import os
+import qrcode
 
 from .utils import generate_short_code, generate_qr_token, qr_expiry
 from .schemas import ShortURLCreate
@@ -16,7 +17,11 @@ router = APIRouter(
     tags=["Shortener"]
 )
 
-BASE_URL = "http://127.0.0.1:8000/urls"
+BASE_URL = os.getenv(
+    "BASE_URL",
+    "http://localhost:8000"
+)
+
 
 @router.post("/")
 def create_short_url(
@@ -25,11 +30,17 @@ def create_short_url(
     current_user: User = Depends(get_current_user)
 ):
     original_url = data.original_url
-
     if not original_url.startswith("http"):
         original_url = "https://" + original_url
 
-    short_code = generate_short_code()
+    while True:
+        short_code = generate_short_code()
+        exists = db.query(ShortURL).filter(
+            ShortURL.short_code == short_code
+        ).first()
+        if not exists:
+            break
+
     expires_at = datetime.utcnow() + timedelta(days=7)
 
     short_url = ShortURL(
@@ -49,25 +60,6 @@ def create_short_url(
         "expires_at": expires_at
     }
 
-@router.get("/s/{short_code}")
-def redirect_short_url(
-    short_code: str,
-    db: Session = Depends(get_db)
-):
-    short = db.query(ShortURL).filter(
-        ShortURL.short_code == short_code
-    ).first()
-
-    if not short:
-        raise HTTPException(status_code=404, detail="Short URL not found")
-
-    if short.expires_at < datetime.utcnow():
-        raise HTTPException(status_code=410, detail="Short URL expired")
-
-    return RedirectResponse(
-        url=short.original_url,
-        status_code=302
-    )
 
 @router.get("/{short_code}/qr")
 def generate_qr(
@@ -105,24 +97,3 @@ def generate_qr(
     buf.seek(0)
 
     return StreamingResponse(buf, media_type="image/png")
-
-@router.get("/q/{token}")
-def scan_qr(
-    token: str,
-    db: Session = Depends(get_db)
-):
-    qr = db.query(QRToken).filter(
-        QRToken.token == token,
-        QRToken.expires_at > datetime.utcnow()
-    ).first()
-
-    if not qr:
-        raise HTTPException(status_code=404, detail="QR expired or invalid")
-
-    if qr.short_url.expires_at < datetime.utcnow():
-        raise HTTPException(status_code=410, detail="Short URL expired")
-
-    return RedirectResponse(
-        url=qr.short_url.original_url,
-        status_code=302
-    )
