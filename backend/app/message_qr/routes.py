@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
+import os
 
 from .models import MessageQR
 from .schemas import MessageQRCreate, MessageQRResponse
@@ -11,7 +12,7 @@ from ..models import User
 
 router = APIRouter(prefix="/messages", tags=["Message QR"])
 
-BASE_URL = "http://127.0.0.1:8000"
+BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 
 
 @router.post("/", response_model=MessageQRResponse)
@@ -23,8 +24,14 @@ def create_message_qr(
     if not data.content.strip():
         raise HTTPException(status_code=400, detail="Message cannot be empty")
 
-    token = generate_message_token()
-    expires_at = datetime.utcnow() + timedelta(days=7)  # 🔥 7 days expiry
+    # ensure unique token
+    while True:
+        token = generate_message_token()
+        exists = db.query(MessageQR).filter(MessageQR.token == token).first()
+        if not exists:
+            break
+
+    expires_at = datetime.utcnow() + timedelta(days=7)
 
     msg = MessageQR(
         token=token,
