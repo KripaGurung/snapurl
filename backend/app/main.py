@@ -3,22 +3,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
-from .db import engine, get_db
-from . import models
-from .auth.routes import router as auth_router
-from .shortener.routes import router as shortener_router
+from app.db import get_db
+from app import models
+from app.auth.routes import router as auth_router
+from app.shortener.routes import router as shortener_router
 from app.message_qr.routes import router as message_qr_router
-
-models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="SnapUrl API")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://snapurl-taupe.vercel.app",   
-        "http://localhost:5173",              
-        "http://localhost:3000",             
+        "https://snapurl-taupe.vercel.app",
+        "http://localhost:5173",
+        "http://localhost:3000",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -49,5 +47,8 @@ def redirect_short_url(
 
     if not url:
         raise HTTPException(status_code=404, detail="Short URL not found")
+
+    url.clicks += 1
+    db.commit()
 
     return RedirectResponse(url.original_url, status_code=302)

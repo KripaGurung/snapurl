@@ -13,6 +13,7 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     urls = relationship("ShortURL", back_populates="owner")
+    qr_tokens = relationship("QRToken", back_populates="owner")
 
 class ShortURL(Base):
     __tablename__ = "short_urls"
@@ -24,11 +25,13 @@ class ShortURL(Base):
     is_active = Column(Boolean, default=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    expires_at = Column(DateTime(timezone=True), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     owner = relationship("User", back_populates="urls")
-    
+
+    qr_tokens = relationship("QRToken", back_populates="short_url")
+
 class QRToken(Base):
     __tablename__ = "qr_tokens"
 
@@ -38,8 +41,8 @@ class QRToken(Base):
     short_url_id = Column(Integer, ForeignKey("short_urls.id"), nullable=False)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
-    expires_at = Column(DateTime(timezone=True), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    short_url = relationship("ShortURL")
-    owner = relationship("User")
+    short_url = relationship("ShortURL", back_populates="qr_tokens")
+    owner = relationship("User", back_populates="qr_tokens")
