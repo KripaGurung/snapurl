@@ -13,11 +13,11 @@ function CreateUrl() {
   const [msgType, setMsgType] = useState("");
   const [msgContent, setMsgContent] = useState("");
   const [msgQrUrl, setMsgQrUrl] = useState("");
-
   const navigate = useNavigate();
 
+
   const handleCreate = async () => {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("token");
     if (!token) {
       alert("Please login first");
       navigate("/login");
@@ -25,11 +25,9 @@ function CreateUrl() {
     }
 
     try {
-      const res = await api.post(
-        "/urls/",
-        { original_url: url },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await api.post("/api/shortener/urls", {
+        original_url: url,
+      });
 
       setShortUrl(res.data.short_url);
       setShortCode(res.data.short_code);
@@ -41,13 +39,11 @@ function CreateUrl() {
   };
 
   const generateQR = async () => {
-    const token = localStorage.getItem("access_token");
-
     try {
-      const res = await api.get(`/urls/${shortCode}/qr`, {
-        responseType: "blob",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get(
+        `/api/shortener/urls/${shortCode}/qr`,
+        { responseType: "blob" }
+      );
 
       const imageURL = URL.createObjectURL(res.data);
       setQrImage(imageURL);
@@ -86,7 +82,7 @@ function CreateUrl() {
       return;
     }
 
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("token");
     if (!token) {
       alert("Please login first");
       navigate("/login");
@@ -94,11 +90,10 @@ function CreateUrl() {
     }
 
     try {
-      const res = await api.post(
-        "/messages/",
-        { type: msgType, content: msgContent },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await api.post("/api/message-qr/messages", {
+        type: msgType,
+        content: msgContent,
+      });
 
       setMsgQrUrl(res.data.qr_url);
     } catch (err) {
@@ -131,6 +126,7 @@ function CreateUrl() {
 
   return (
     <div className="app-container">
+
       <section className="section url-section">
         <h1>URL Shortener</h1>
         <p className="section-desc"> Convert long URLs into short, shareable links instantly. </p>
@@ -149,7 +145,7 @@ function CreateUrl() {
               <>
                 <a href={shortUrl} target="_blank" rel="noreferrer" className="short-link"> {shortUrl} </a>
 
-                <button style={{ marginTop: "12px" }} onClick={() => setShowModal(true)}> Generate QR </button>
+                <button style={{ marginTop: "12px" }} onClick={() => setShowModal(true)} > Generate QR </button>
               </>
             ) : (
               <p className="muted">Your short URL will appear here</p>
@@ -178,8 +174,8 @@ function CreateUrl() {
           <div className="modal">
             <h3>Do you want to generate QR?</h3>
             <div className="modal-buttons">
-              <button className="yes" onClick={generateQR}>Yes</button>
-              <button className="no" onClick={() => setShowModal(false)}>No</button>
+              <button className="yes" onClick={generateQR}> Yes </button>
+              <button className="no" onClick={() => setShowModal(false)}> No </button>
             </div>
           </div>
         </div>
@@ -191,23 +187,21 @@ function CreateUrl() {
 
         <div className="message-panel">
           <div className="message-actions">
-            <button className={msgType === "plain" ? "active" : ""} onClick={() => setMsgType("plain")}>Plain Text</button>
-            <button className={msgType === "note" ? "active" : ""} onClick={() => setMsgType("note")}>Note</button>
-            <button className={msgType === "alert" ? "active" : ""} onClick={() => setMsgType("alert")}>Alert</button>
+            <button className={msgType === "plain" ? "active" : ""} onClick={() => setMsgType("plain")}> Plain Text </button>
+            <button className={msgType === "note" ? "active" : ""} onClick={() => setMsgType("note")} > Note </button>
+            <button className={msgType === "alert" ? "active" : ""} onClick={() => setMsgType("alert")} > Alert </button>
           </div>
 
           <textarea className="message-input" placeholder="Add your text here..." disabled={!msgType} value={msgContent} onChange={(e) => setMsgContent(e.target.value)} />
 
-          <button className="generate-message-btn" onClick={generateMessageQR} disabled={!msgType || !msgContent.trim()}> Generate Message QR </button>
+          <button className="generate-message-btn" onClick={generateMessageQR} disabled={!msgType || !msgContent.trim()} > Generate Message QR </button>
         </div>
 
         {msgQrUrl && (
           <div className="qr-center">
             <div className="qr-box">
               <p className="qr-title">QR for Message</p>
-
               <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${msgQrUrl}`} alt="Message QR" />
-
               <p>Scan to view message</p>
 
               <div className="qr-actions">
