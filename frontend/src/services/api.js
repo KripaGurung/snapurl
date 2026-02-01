@@ -1,7 +1,9 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL?.replace(/\/$/, ""),
+  baseURL:
+    import.meta.env.VITE_API_URL?.replace(/\/$/, "") ||
+    "https://snapurl-uhdx.onrender.com", 
   headers: {
     "Content-Type": "application/json",
   },
@@ -10,7 +12,8 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    
+    const token = localStorage.getItem("access_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
