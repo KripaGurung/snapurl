@@ -5,11 +5,19 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app import models
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.db import engine
+from app import models
+
 from app.auth.routes import router as auth_router
 from app.shortener.routes import router as shortener_router
 from app.message_qr.routes import router as message_qr_router
 
 app = FastAPI(title="SnapUrl API")
+
+models.Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,
