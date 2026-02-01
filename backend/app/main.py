@@ -1,14 +1,9 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
-from app.db import get_db
-from app import models
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
-from app.db import engine
+from app.db import get_db, engine
 from app import models
 
 from app.auth.routes import router as auth_router
@@ -21,17 +16,15 @@ models.Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-
-        "https://snapurl-taupe.vercel.app",
-        "https://snapurl-git-main-kripa-gurungs-projects.vercel.app",
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],        
+    allow_credentials=False,    
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.options("/{path:path}")
+async def options_handler(path: str, request: Request):
+    return Response(status_code=200)
 
 app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
 app.include_router(shortener_router, prefix="/api/shortener", tags=["Shortener"])
