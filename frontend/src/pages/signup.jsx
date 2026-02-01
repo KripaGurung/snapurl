@@ -36,25 +36,15 @@ const Signup = () => {
 
         <div className="input-group">
           <label>Email</label>
-          <input
-            type="email"
-            placeholder="Email"
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
         </div>
 
         <div className="input-group">
           <label>Password</label>
-          <input
-            type="password"
-            placeholder="Password"
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
         </div>
 
-        <button className="signup-btn" onClick={handleSignup}>
-          Signup
-        </button>
+        <button className="signup-btn" onClick={handleSignup}> Signup </button>
 
         <p className="signup-footer">
           Already have an account? <Link to="/login">Login</Link>
