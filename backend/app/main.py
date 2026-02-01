@@ -11,15 +11,13 @@ from app.message_qr.routes import router as message_qr_router
 
 app = FastAPI(title="SnapUrl API")
 
-origins = [
-    "http://localhost:5173",                 
-    "http://127.0.0.1:5173",
-    "https://snapurl-frontend.vercel.app",   
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://snapurl-taupe.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
