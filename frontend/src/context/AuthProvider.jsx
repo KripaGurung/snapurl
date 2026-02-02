@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AuthContext } from "./AuthContext";
-import api from "../api";
+import api from "../services/api";
 
 function AuthProvider({ children }) {
   const [token, setToken] = useState(() =>
