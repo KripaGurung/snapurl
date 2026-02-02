@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, Request, Response
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
@@ -18,19 +18,19 @@ models.Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"], 
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(auth_router)                
-app.include_router(shortener_router)            
-app.include_router(message_qr_router)           
+app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
+app.include_router(shortener_router, prefix="/api/shortener", tags=["Shortener"])
+app.include_router(message_qr_router, prefix="/api/message-qr", tags=["Message QR"])
 
 @app.get("/")
 def root():
-    return {"status": "FastAPI backend running!"}
+    return {"status": "FastAPI backend running"}
 
 @app.get("/s/{short_code}", include_in_schema=False)
 def redirect_short_url(
@@ -55,9 +55,9 @@ def redirect_short_url(
     return RedirectResponse(url.original_url, status_code=302)
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
+    port = int(os.environ.get("PORT", 10000))
     uvicorn.run(
-        "main:app",
+        "app.main:app",
         host="0.0.0.0",
         port=port,
         reload=False
