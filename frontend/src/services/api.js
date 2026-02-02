@@ -3,7 +3,7 @@ import axios from "axios";
 const api = axios.create({
   baseURL:
     import.meta.env.VITE_API_URL?.replace(/\/$/, "") ||
-    "https://snapurl-uhdx.onrender.com/api",
+    "https://snapurl-uhdx.onrender.com",
   headers: {
     "Content-Type": "application/json",
   },
@@ -25,10 +25,22 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    
+    if (
+      error.code === "ECONNABORTED" &&
+      !error.config.__isRetryRequest
+    ) {
+      error.config.__isRetryRequest = true;
+      console.log("⏳ Backend waking up, retrying...");
+      await new Promise((res) => setTimeout(res, 3000));
+      return api(error.config);
+    }
+
     if (error.response?.status === 401) {
       localStorage.removeItem("access_token");
     }
+
     return Promise.reject(error);
   }
 );
