@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../services/api";
+import { useAuth } from "../context/useAuth";
 import "./signup.css";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { signup } = useAuth();
   const navigate = useNavigate();
 
   const handleSignup = async () => {
@@ -15,17 +16,13 @@ const Signup = () => {
     }
 
     try {
-      const response = await api.post("/api/auth/signup", {
-        email,
-        password,
-      });
-
-      console.log("Registered successfully:", response.data);
+      await signup({ email, password });
       alert("Signup successful!");
+      console.log("User signed up:", email);
       navigate("/login");
     } catch (error) {
-      console.error("Signup failed:", error.response?.data);
-      alert(error.response?.data?.detail || "Signup failed");
+      console.error("Signup failed:", error);
+      alert( error.response?.data?.detail || "Signup failed" );
     }
   };
 
@@ -46,9 +43,7 @@ const Signup = () => {
 
         <button className="signup-btn" onClick={handleSignup}> Signup </button>
 
-        <p className="signup-footer">
-          Already have an account? <Link to="/login">Login</Link>
-        </p>
+        <p className="signup-footer"> Already have an account? <Link to="/login">Login</Link> </p>
       </div>
     </div>
   );
