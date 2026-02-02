@@ -7,7 +7,10 @@ function Navbar() {
   const navigate = useNavigate();
   const { token, email, logout } = useAuth();
 
-  const username = email ? email.split("@")[0] : "";
+  const username = email
+    ? email.split("@")[0].charAt(0).toUpperCase() +
+      email.split("@")[0].slice(1)
+    : "";
 
   const handleLogout = () => {
     logout();
@@ -22,8 +25,11 @@ function Navbar() {
         <button className="login-btn" onClick={() => navigate("/login")}> Login </button>
       ) : (
         <div className="user-box">
-          <FaUserCircle size={22} />
-          <span className="username">{username}</span>
+          <div className="user-info">
+            <FaUserCircle size={22} />
+            <span className="username">{username}</span>
+          </div>
+
           <button className="logout-btn" onClick={handleLogout}> Logout </button>
         </div>
       )}
