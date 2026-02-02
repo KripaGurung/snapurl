@@ -7,11 +7,7 @@ from .utils import hash_password, verify_password
 from .jwt import create_access_token
 from .schemas import SignupRequest, LoginRequest
 
-router = APIRouter(
-    prefix="/auth",
-    tags=["Auth"]
-)
-
+router = APIRouter(tags=["Auth"])
 
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
 def signup(
@@ -35,7 +31,6 @@ def signup(
     db.refresh(user)
 
     return {"message": "Signup successful"}
-
 
 @router.post("/login")
 def login(
