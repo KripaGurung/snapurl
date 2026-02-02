@@ -24,13 +24,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.options("/{path:path}")
-async def options_handler(path: str, request: Request):
-    return Response(status_code=200)
-
-app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
-app.include_router(shortener_router, prefix="/api/shortener", tags=["Shortener"])
-app.include_router(message_qr_router, prefix="/api/message-qr", tags=["Message QR"])
+app.include_router(auth_router)                
+app.include_router(shortener_router)            
+app.include_router(message_qr_router)           
 
 @app.get("/")
 def root():
