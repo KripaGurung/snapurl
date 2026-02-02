@@ -45,12 +45,12 @@ def login(
             detail="Invalid email or password"
         )
 
-    access_token = create_access_token(
+    user.email = create_access_token(
         data={"sub": str(user.id)}
     )
 
     return {
         "message": "Login successful",
-        "access_token":  user.email,
+        "access_token": user.email,
         "token_type": "bearer"
     }
