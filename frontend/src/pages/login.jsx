@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
-import api from "../services/api";
 import "./login.css";
 
 const Login = () => {
@@ -17,17 +16,12 @@ const Login = () => {
     }
 
     try {
-      const response = await api.post("/api/auth/login", {
-        email,
-        password,
-      });
-
-      login(response.data.access_token, email);
-
+      await login({ email, password });
+      console.log("Login successful");
       navigate("/", { replace: true });
     } catch (error) {
-      console.error("Login failed:", error.response?.data);
-      alert(error.response?.data?.detail || "Login failed");
+      console.error("Login failed:", error);
+      alert( error.response?.data?.detail || "Login failed" );
     }
   };
 
