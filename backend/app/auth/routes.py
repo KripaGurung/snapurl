@@ -1,24 +1,25 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordBearer
 
 from app.db import get_db
 from app.models import User
 from .utils import hash_password, verify_password
-from .jwt import create_access_token, decode_access_token
+from .jwt import create_access_token
 from .schemas import SignupRequest, LoginRequest
 
 router = APIRouter()
 
-
-@router.post("/signup", status_code=201)
+@router.post("/signup", status_code=status.HTTP_201_CREATED)
 def signup(
     data: SignupRequest,
     db: Session = Depends(get_db)
 ):
     existing = db.query(User).filter(User.email == data.email).first()
     if existing:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
 
     user = User(
         email=data.email,
@@ -31,7 +32,6 @@ def signup(
 
     return {"message": "Signup successful"}
 
-
 @router.post("/login")
 def login(
     data: LoginRequest,
@@ -39,13 +39,21 @@ def login(
 ):
     user = db.query(User).filter(User.email == data.email).first()
 
-    if not user or not verify_password(data.password, user.hashed_password):
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials"
+            detail="Invalid email or password"
         )
 
-    access_token = create_access_token({"sub": str(user.id)})
+    if not verify_password(data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password"
+        )
+
+    access_token = create_access_token(
+        data={"sub": str(user.id)}
+    )
 
     return {
         "access_token": access_token,

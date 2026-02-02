@@ -3,6 +3,10 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 import os
 
+import qrcode
+from io import BytesIO
+from fastapi.responses import StreamingResponse
+
 from .models import MessageQR
 from .schemas import MessageQRCreate, MessageQRResponse
 from .utils import generate_message_token
@@ -10,10 +14,9 @@ from ..db import get_db
 from ..auth.deps import get_current_user
 from ..models import User
 
-router = APIRouter(prefix="/messages", tags=["Message QR"])
+router = APIRouter(prefix="/message-qr/messages", tags=["Message QR"])
 
 BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
-
 
 @router.post("/", response_model=MessageQRResponse)
 def create_message_qr(
@@ -24,7 +27,6 @@ def create_message_qr(
     if not data.content.strip():
         raise HTTPException(status_code=400, detail="Message cannot be empty")
 
-    # ensure unique token
     while True:
         token = generate_message_token()
         exists = db.query(MessageQR).filter(MessageQR.token == token).first()
@@ -49,7 +51,6 @@ def create_message_qr(
         "qr_url": f"{BASE_URL}/m/{token}"
     }
 
-
 @router.get("/m/{token}")
 def view_message(token: str, db: Session = Depends(get_db)):
     msg = db.query(MessageQR).filter(MessageQR.token == token).first()
@@ -65,3 +66,22 @@ def view_message(token: str, db: Session = Depends(get_db)):
         "content": msg.content,
         "created_at": msg.created_at
     }
+
+@router.get("/{token}/qr")
+def get_message_qr_image(token: str, db: Session = Depends(get_db)):
+    msg = db.query(MessageQR).filter(MessageQR.token == token).first()
+
+    if not msg:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+    if msg.expires_at < datetime.utcnow():
+        raise HTTPException(status_code=410, detail="QR expired")
+
+    qr_url = f"{BASE_URL}/m/{token}"
+
+    qr = qrcode.make(qr_url)
+    buffer = BytesIO()
+    qr.save(buffer, format="PNG")
+    buffer.seek(0)
+
+    return StreamingResponse(buffer, media_type="image/png")
