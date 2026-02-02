@@ -51,6 +51,6 @@ def login(
 
     return {
         "message": "Login successful",
-        "access_token": access_token,
+        "access_token":  user.email,
         "token_type": "bearer"
     }
