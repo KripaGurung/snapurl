@@ -2,8 +2,8 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL:
-    import.meta.env.VITE_API_URL?.replace(/\/$/, "") ||
-    "https://snapurl-uhdx.onrender.com",
+    import.meta.env.VITE_API_URL?.replace(/\/$/, "") + "/api" ||
+    "https://snapurl-uhdx.onrender.com/api",
   headers: {
     "Content-Type": "application/json",
   },
@@ -32,7 +32,7 @@ api.interceptors.response.use(
       !error.config.__isRetryRequest
     ) {
       error.config.__isRetryRequest = true;
-      console.log("⏳ Backend waking up, retrying...");
+      console.log("Backend waking up, retrying...");
       await new Promise((res) => setTimeout(res, 3000));
       return api(error.config);
     }
