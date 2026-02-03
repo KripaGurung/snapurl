@@ -4,60 +4,57 @@
     align-items: center;
     padding: 12px 20px;
     border-bottom: 1px solid #e5e7eb;
-    background-color: #ffffff;
+    background-color: #fff;
 }
 
 .navbar-logo {
     font-weight: 700;
     font-size: 20px;
-    cursor: pointer;
 }
 
 .user-box {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
 }
 
 .user-info {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 6px;
-    max-width: 160px;
+    line-height: 1;
+}
+
+.user-info svg {
+    display: block;
+    vertical-align: middle;
 }
 
 .username {
     font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
     max-width: 110px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.navbar .login-btn {
-    padding: 6px 16px;
-    border: none;
-    border-radius: 6px;
-    background-color: #4f6ef7;
-    color: white;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.navbar .login-btn:hover {
-    background-color: #3b5bdb;
-}
-
-.navbar .logout-btn {
+.login-btn,
+.logout-btn {
     padding: 6px 14px;
     border: none;
     border-radius: 6px;
-    background-color: #dc3545;
-    color: white;
     cursor: pointer;
-    transition: background-color 0.2s ease;
 }
 
-.navbar .logout-btn:hover {
-    background-color: #c82333;
+.login-btn {
+    background-color: #4f6ef7;
+    color: white;
+}
+
+.logout-btn {
+    background-color: #dc3545;
+    color: white;
 }
