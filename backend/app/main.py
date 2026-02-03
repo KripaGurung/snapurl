@@ -18,7 +18,7 @@ models.Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"], 
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -27,7 +27,6 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
 app.include_router(shortener_router, prefix="/api/shortener", tags=["Shortener"])
 app.include_router(message_qr_router, prefix="/api/message-qr", tags=["Message QR"])
-
 
 @app.get("/")
 def root():
@@ -40,24 +39,20 @@ def redirect_short_url(
 ):
     url = (
         db.query(models.ShortURL)
-        .filter(models.ShortURL.short_code == short_code)
+        .filter(
+            models.ShortURL.short_code == short_code,
+            models.ShortURL.is_active.is_(True)
+        )
         .first()
     )
 
     if not url:
         raise HTTPException(status_code=404, detail="Short URL not found")
 
-    if not url.is_active:
-        raise HTTPException(status_code=410, detail="Short URL inactive")
-
-    if url.expires_at and url.expires_at < models.datetime.utcnow():
-        raise HTTPException(status_code=410, detail="Short URL expired")
-
     url.clicks += 1
     db.commit()
 
     return RedirectResponse(url.original_url, status_code=302)
-
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
