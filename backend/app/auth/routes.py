@@ -30,7 +30,9 @@ def signup(
     db.commit()
     db.refresh(user)
 
-    return {"message": "Signup successful"}
+    return {
+        "message": "Signup successful"
+    }
 
 @router.post("/login")
 def login(
@@ -45,12 +47,13 @@ def login(
             detail="Invalid email or password"
         )
 
-    user.email = create_access_token(
+    access_token = create_access_token(
         data={"sub": str(user.id)}
     )
 
     return {
         "message": "Login successful",
-        "access_token": user.email,
-        "token_type": "bearer"
+        "access_token": access_token,
+        "token_type": "bearer",
+        "email": user.email
     }
