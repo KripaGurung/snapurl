@@ -3,41 +3,61 @@
     justify-content: space-between;
     align-items: center;
     padding: 12px 20px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #ffffff;
 }
 
 .navbar-logo {
+    font-weight: 700;
+    font-size: 20px;
     cursor: pointer;
-    font-weight: bold;
 }
 
 .user-box {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 14px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 160px;
+}
+
+.username {
+    font-weight: 500;
+    max-width: 110px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .navbar .login-btn {
-    width: auto !important;
     padding: 6px 16px;
     border: none;
     border-radius: 6px;
     background-color: #4f6ef7;
     color: white;
     cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.navbar .login-btn:hover {
+    background-color: #3b5bdb;
 }
 
 .navbar .logout-btn {
-    width: auto !important;
     padding: 6px 14px;
     border: none;
-    border-radius: 6px;
     border-radius: 6px;
     background-color: #dc3545;
     color: white;
     cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
-.username {
-    font-weight: 500;
+.navbar .logout-btn:hover {
+    background-color: #c82333;
 }
