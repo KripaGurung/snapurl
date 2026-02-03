@@ -22,7 +22,6 @@ BASE_URL = os.getenv(
     "http://localhost:8000"
 )
 
-
 @router.post("/")
 def create_short_url(
     data: ShortURLCreate,
@@ -47,7 +46,9 @@ def create_short_url(
         original_url=original_url,
         short_code=short_code,
         user_id=current_user.id,
-        expires_at=expires_at
+        expires_at=expires_at,
+        is_active=True,      
+        clicks=0             
     )
 
     db.add(short_url)
@@ -59,8 +60,7 @@ def create_short_url(
         "short_url": f"{BASE_URL}/s/{short_code}",
         "expires_at": expires_at
     }
-
-
+    
 @router.get("/{short_code}/qr")
 def generate_qr(
     short_code: str,
