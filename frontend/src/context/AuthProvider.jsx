@@ -14,13 +14,16 @@ function AuthProvider({ children }) {
   const login = async (data) => {
     const res = await api.post("/auth/login", data);
 
-    const { access_token, email } = res.data;
+    const access_token = res.data.access_token;
+    const userEmail = res.data.email; 
 
     localStorage.setItem("access_token", access_token);
-    localStorage.setItem("user_email", email);
+    if (userEmail) {
+      localStorage.setItem("user_email", userEmail);
+    }
 
     setToken(access_token);
-    setEmail(email);
+    setEmail(userEmail || null);
 
     return res.data;
   };

@@ -10,7 +10,9 @@ function Navbar() {
   const username = email
     ? email.split("@")[0].charAt(0).toUpperCase() +
       email.split("@")[0].slice(1)
-    : "";
+    : "User";
+
+    console.log("Navbar - email:", email, "username:", username);
 
   const handleLogout = () => {
     logout();
