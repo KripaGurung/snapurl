@@ -17,11 +17,10 @@ router = APIRouter(
     tags=["Shortener"]
 )
 
-BASE_URL = os.getenv(
-    "BASE_URL",
-    "http://localhost:8000"
-)
+BASE_URL = os.getenv("BASE_URL")
 
+if not BASE_URL:
+    raise RuntimeError("BASE_URL environment variable is not set")
 
 @router.post("/")
 def create_short_url(
@@ -29,7 +28,8 @@ def create_short_url(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    original_url = data.original_url
+    original_url = data.original_url.strip()
+
     if not original_url.startswith("http"):
         original_url = "https://" + original_url
 
@@ -59,7 +59,6 @@ def create_short_url(
         "short_url": f"{BASE_URL}/s/{short_code}",
         "expires_at": expires_at
     }
-
 
 @router.get("/{short_code}/qr")
 def generate_qr(
