@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from datetime import datetime, timedelta
 import os
 
@@ -14,14 +15,20 @@ from ..db import get_db
 from ..auth.deps import get_current_user
 from ..models import User
 
-router = APIRouter(prefix="/message-qr/messages", tags=["Message QR"])
+router = APIRouter(
+    prefix="/message-qr/messages",
+    tags=["Message QR"]
+)
 
-BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
+BASE_URL = os.getenv("BASE_URL")
+
+if not BASE_URL:
+    raise RuntimeError("BASE_URL environment variable is not set")
 
 @router.post("/", response_model=MessageQRResponse)
-def create_message_qr(
+async def create_message_qr(
     data: MessageQRCreate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     if not data.content.strip():
@@ -29,7 +36,10 @@ def create_message_qr(
 
     while True:
         token = generate_message_token()
-        exists = db.query(MessageQR).filter(MessageQR.token == token).first()
+        result = await db.execute(
+            select(MessageQR).where(MessageQR.token == token)
+        )
+        exists = result.scalar_one_or_none()
         if not exists:
             break
 
@@ -44,7 +54,8 @@ def create_message_qr(
     )
 
     db.add(msg)
-    db.commit()
+    await db.commit()
+    await db.refresh(msg)
 
     return {
         "token": token,
@@ -52,8 +63,14 @@ def create_message_qr(
     }
 
 @router.get("/m/{token}")
-def view_message(token: str, db: Session = Depends(get_db)):
-    msg = db.query(MessageQR).filter(MessageQR.token == token).first()
+async def view_message(
+    token: str,
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(
+        select(MessageQR).where(MessageQR.token == token)
+    )
+    msg = result.scalar_one_or_none()
 
     if not msg:
         raise HTTPException(status_code=404, detail="Message not found")
@@ -68,8 +85,14 @@ def view_message(token: str, db: Session = Depends(get_db)):
     }
 
 @router.get("/{token}/qr")
-def get_message_qr_image(token: str, db: Session = Depends(get_db)):
-    msg = db.query(MessageQR).filter(MessageQR.token == token).first()
+async def get_message_qr_image(
+    token: str,
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(
+        select(MessageQR).where(MessageQR.token == token)
+    )
+    msg = result.scalar_one_or_none()
 
     if not msg:
         raise HTTPException(status_code=404, detail="Message not found")
