@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from io import BytesIO
 from fastapi.responses import StreamingResponse
 from datetime import datetime, timedelta
@@ -23,9 +24,9 @@ if not BASE_URL:
     raise RuntimeError("BASE_URL environment variable is not set")
 
 @router.post("/")
-def create_short_url(
+async def create_short_url(
     data: ShortURLCreate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     original_url = data.original_url.strip()
@@ -35,9 +36,10 @@ def create_short_url(
 
     while True:
         short_code = generate_short_code()
-        exists = db.query(ShortURL).filter(
-            ShortURL.short_code == short_code
-        ).first()
+        result = await db.execute(
+            select(ShortURL).where(ShortURL.short_code == short_code)
+        )
+        exists = result.scalar_one_or_none()
         if not exists:
             break
 
@@ -51,8 +53,8 @@ def create_short_url(
     )
 
     db.add(short_url)
-    db.commit()
-    db.refresh(short_url)
+    await db.commit()
+    await db.refresh(short_url)
 
     return {
         "short_code": short_code,
@@ -61,14 +63,15 @@ def create_short_url(
     }
 
 @router.get("/{short_code}/qr")
-def generate_qr(
+async def generate_qr(
     short_code: str,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    short = db.query(ShortURL).filter(
-        ShortURL.short_code == short_code
-    ).first()
+    result = await db.execute(
+        select(ShortURL).where(ShortURL.short_code == short_code)
+    )
+    short = result.scalar_one_or_none()
 
     if not short:
         raise HTTPException(status_code=404, detail="Short URL not found")
@@ -86,7 +89,7 @@ def generate_qr(
     )
 
     db.add(qr_entry)
-    db.commit()
+    await db.commit()
 
     qr_link = f"{BASE_URL}/q/{token}"
 
