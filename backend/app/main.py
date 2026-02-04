@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from datetime import datetime, timezone
 import os
 import uvicorn
 
@@ -15,10 +16,12 @@ from app.message_qr.routes import router as message_qr_router
 
 app = FastAPI(title="SnapUrl API")
 
+
 @app.on_event("startup")
 async def on_startup():
     async with engine.begin() as conn:
         await conn.run_sync(models.Base.metadata.create_all)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -31,6 +34,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
 app.include_router(shortener_router, prefix="/api/shortener", tags=["Shortener"])
 app.include_router(message_qr_router, prefix="/api/message-qr", tags=["Message QR"])
+
 
 @app.get("/")
 async def root():
@@ -52,10 +56,32 @@ async def redirect_short_url(
     if not url:
         raise HTTPException(status_code=404, detail="Short URL not found")
 
+    if url.expires_at and url.expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=410, detail="Short URL expired")
+
     url.clicks += 1
     await db.commit()
 
     return RedirectResponse(url.original_url, status_code=302)
+
+@app.get("/q/{token}", include_in_schema=False)
+async def redirect_qr_token(
+    token: str,
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(
+        select(models.QRToken).where(models.QRToken.token == token)
+    )
+    qr = result.scalar_one_or_none()
+
+    if not qr:
+        raise HTTPException(status_code=404, detail="Invalid QR code")
+
+    if qr.expires_at and qr.expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=410, detail="QR code expired")
+
+    return RedirectResponse(qr.short_url.original_url, status_code=302)
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
