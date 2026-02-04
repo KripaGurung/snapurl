@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.db import get_db
 from app.models import User
@@ -10,11 +11,15 @@ from .schemas import SignupRequest, LoginRequest
 router = APIRouter(tags=["Auth"])
 
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
-def signup(
+async def signup(
     data: SignupRequest,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
-    existing = db.query(User).filter(User.email == data.email).first()
+    email = data.email.strip().lower()
+
+    existing = await db.scalar(
+        select(User).where(User.email == email)
+    )
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -22,24 +27,28 @@ def signup(
         )
 
     user = User(
-        email=data.email,
+        email=email,
         hashed_password=hash_password(data.password)
     )
 
     db.add(user)
-    db.commit()
-    db.refresh(user)
+    await db.commit()
+    await db.refresh(user)
 
     return {
         "message": "Signup successful"
     }
 
 @router.post("/login")
-def login(
+async def login(
     data: LoginRequest,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
-    user = db.query(User).filter(User.email == data.email).first()
+    email = data.email.strip().lower()
+
+    user = await db.scalar(
+        select(User).where(User.email == email)
+    )
 
     if not user or not verify_password(data.password, user.hashed_password):
         raise HTTPException(
