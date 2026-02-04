@@ -12,10 +12,16 @@ function AuthProvider({ children }) {
   );
 
   const login = async (data) => {
-    const res = await api.post("/auth/login", data);
+    const res = await api.post(
+      "/auth/login/",
+      {
+        email: data.email.trim().toLowerCase(), 
+        password: data.password,
+      }
+    );
 
     const access_token = res.data.access_token;
-    const userEmail = res.data.email; 
+    const userEmail = res.data.email;
 
     localStorage.setItem("access_token", access_token);
     if (userEmail) {
@@ -29,7 +35,14 @@ function AuthProvider({ children }) {
   };
 
   const signup = async (data) => {
-    const res = await api.post("/auth/signup", data);
+    const res = await api.post(
+      "/auth/signup/",   
+      {
+        email: data.email.trim().toLowerCase(),
+        password: data.password,
+      }
+    );
+
     return res.data;
   };
 
