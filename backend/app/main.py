@@ -1,7 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 import os
 import uvicorn
 
@@ -14,11 +15,14 @@ from app.message_qr.routes import router as message_qr_router
 
 app = FastAPI(title="SnapUrl API")
 
-models.Base.metadata.create_all(bind=engine)
+@app.on_event("startup")
+async def on_startup():
+    async with engine.begin() as conn:
+        await conn.run_sync(models.Base.metadata.create_all)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -29,28 +33,27 @@ app.include_router(shortener_router, prefix="/api/shortener", tags=["Shortener"]
 app.include_router(message_qr_router, prefix="/api/message-qr", tags=["Message QR"])
 
 @app.get("/")
-def root():
+async def root():
     return {"status": "FastAPI backend running"}
 
 @app.get("/s/{short_code}", include_in_schema=False)
-def redirect_short_url(
+async def redirect_short_url(
     short_code: str,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
-    url = (
-        db.query(models.ShortURL)
-        .filter(
+    result = await db.execute(
+        select(models.ShortURL).where(
             models.ShortURL.short_code == short_code,
             models.ShortURL.is_active.is_(True)
         )
-        .first()
     )
+    url = result.scalar_one_or_none()
 
     if not url:
         raise HTTPException(status_code=404, detail="Short URL not found")
 
     url.clicks += 1
-    db.commit()
+    await db.commit()
 
     return RedirectResponse(url.original_url, status_code=302)
 
