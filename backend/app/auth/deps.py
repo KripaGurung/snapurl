@@ -1,23 +1,18 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from ..models import User
-from ..db import SessionLocal
+from ..db import get_db
 from .jwt import SECRET_KEY, ALGORITHM
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login/")
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-def get_current_user(
+async def get_current_user(
     token: str = Depends(oauth2_scheme),
-    db = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -27,7 +22,7 @@ def get_current_user(
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")
+        user_id: str | None = payload.get("sub")
 
         if user_id is None:
             raise credentials_exception
@@ -35,7 +30,10 @@ def get_current_user(
     except JWTError:
         raise credentials_exception
 
-    user = db.query(User).filter(User.id == int(user_id)).first()
+    result = await db.execute(
+        select(User).where(User.id == int(user_id))
+    )
+    user = result.scalar_one_or_none()
 
     if user is None:
         raise credentials_exception
