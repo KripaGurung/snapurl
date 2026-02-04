@@ -40,7 +40,17 @@
     text-overflow: ellipsis;
 }
 
-.login-btn,
+.nav-login-btn {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: #4f6ef7;
+    color: white;
+    width: auto;
+    white-space: nowrap;
+}
+
 .logout-btn {
     padding: 6px 14px;
     border: none;
@@ -48,7 +58,7 @@
     cursor: pointer;
 }
 
-.login-btn {
+.nav-login-btn {
     background-color: #4f6ef7;
     color: white;
 }

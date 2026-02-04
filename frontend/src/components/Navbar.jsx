@@ -24,7 +24,7 @@ function Navbar() {
       <h2 className="navbar-logo" onClick={() => navigate("/")} style={{ cursor: "pointer" }}> SnapUrl </h2>
 
       {!token ? (
-        <button className="login-btn" onClick={() => navigate("/login")}> Login </button>
+        <button className="nav-login-btn" onClick={() => navigate("/login")}> Login </button>
       ) : (
         <div className="user-box">
           <div className="user-info">
