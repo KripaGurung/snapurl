@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from io import BytesIO
-from fastapi.responses import StreamingResponse
-from datetime import datetime, timedelta
+from fastapi.responses import StreamingResponse, RedirectResponse
+from datetime import datetime, timedelta, timezone
 import os
 import qrcode
 
@@ -22,6 +22,7 @@ BASE_URL = os.getenv("BASE_URL")
 
 if not BASE_URL:
     raise RuntimeError("BASE_URL environment variable is not set")
+
 
 @router.post("/")
 async def create_short_url(
@@ -43,7 +44,7 @@ async def create_short_url(
         if not exists:
             break
 
-    expires_at = datetime.utcnow() + timedelta(days=7)
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
 
     short_url = ShortURL(
         original_url=original_url,
@@ -62,6 +63,7 @@ async def create_short_url(
         "expires_at": expires_at
     }
 
+
 @router.get("/{short_code}/qr")
 async def generate_qr(
     short_code: str,
@@ -76,7 +78,7 @@ async def generate_qr(
     if not short:
         raise HTTPException(status_code=404, detail="Short URL not found")
 
-    if short.expires_at < datetime.utcnow():
+    if short.expires_at and short.expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=410, detail="Short URL expired")
 
     token = generate_qr_token()
@@ -98,4 +100,29 @@ async def generate_qr(
     img.save(buf, format="PNG")
     buf.seek(0)
 
-    return StreamingResponse(buf, media_type="image/png")
+    return StreamingResponse(
+        buf,
+        media_type="image/png",
+        headers={
+            "Content-Disposition": f'attachment; filename="{short_code}.png"'
+        }
+    )
+
+@router.get("/q/{token}", include_in_schema=False)
+async def qr_redirect(
+    token: str,
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(
+        select(QRToken).where(QRToken.token == token)
+    )
+    qr = result.scalar_one_or_none()
+
+    if not qr:
+        raise HTTPException(status_code=404, detail="Invalid QR")
+
+    if qr.expires_at and qr.expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=410, detail="QR expired")
+
+    short = qr.short_url
+    return RedirectResponse(short.original_url)

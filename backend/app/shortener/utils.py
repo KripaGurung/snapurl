@@ -1,7 +1,6 @@
 import string
-import random
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 def generate_short_code(length: int = 6) -> str:
@@ -14,4 +13,4 @@ def generate_qr_token():
 
 
 def qr_expiry():
-    return datetime.utcnow() + timedelta(days=7)
+    return datetime.now(timezone.utc) + timedelta(days=7)
