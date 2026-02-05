@@ -11,10 +11,8 @@ function CreateUrl() {
   const [shortCode, setShortCode] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [qrImage, setQrImage] = useState(null);
-
   const [msgType, setMsgType] = useState("");
   const [msgContent, setMsgContent] = useState("");
-
   const navigate = useNavigate();
   const { token } = useAuth();
 
@@ -41,9 +39,7 @@ function CreateUrl() {
 
   const generateQR = async () => {
     try {
-      const res = await api.get(`/shortener/urls/${shortCode}/qr`, {
-        responseType: "blob",
-      });
+      const res = await api.get(`/shortener/urls/${shortCode}/qr`,{ responseType: "blob" });
 
       const imageURL = URL.createObjectURL(res.data);
       setQrImage(imageURL);
@@ -72,12 +68,9 @@ function CreateUrl() {
         content: msgContent,
       });
 
-      const token = res.data.token;
+      const messageToken = res.data.token;
 
-      const qrRes = await api.get(
-        `/message-qr/messages/${token}/qr`,
-        { responseType: "blob" }
-      );
+      const qrRes = await api.get(`/message-qr/messages/${messageToken}/qr`, { responseType: "blob" });
 
       const imageURL = URL.createObjectURL(qrRes.data);
       setQrImage(imageURL);
@@ -111,9 +104,7 @@ function CreateUrl() {
     <div className="app-container">
       <section className="section url-section">
         <h1>URL Shortener</h1>
-        <p className="section-desc">
-          Convert long URLs into short, shareable links instantly.
-        </p>
+        <p className="section-desc"> Convert long URLs into short, shareable links instantly. </p>
 
         <div className="container">
           <div className="card">
@@ -170,14 +161,14 @@ function CreateUrl() {
 
         <div className="message-panel">
           <div className="message-actions">
-            <button className={msgType === "plain" ? "active" : ""} onClick={() => setMsgType("plain")} > Plain Text </button>
-            <button className={msgType === "note" ? "active" : ""} onClick={() => setMsgType("note")} > Note </button>
+            <button className={msgType === "plain" ? "active" : ""} onClick={() => setMsgType("plain")}> Plain Text </button>
+            <button className={msgType === "note" ? "active" : ""} onClick={() => setMsgType("note")}> Note </button>
             <button className={msgType === "alert" ? "active" : ""} onClick={() => setMsgType("alert")}> Alert </button>
           </div>
 
           <textarea className="message-input" placeholder="Add your text here..." disabled={!msgType} value={msgContent} onChange={(e) => setMsgContent(e.target.value)} />
 
-          <button className="generate-message-btn" onClick={generateMessageQR} disabled={!msgType || !msgContent.trim()}> Generate Message QR </button>
+          <button className="generate-message-btn" onClick={generateMessageQR} disabled={!msgType || !msgContent.trim()} > Generate Message QR </button>
         </div>
       </section>
     </div>
