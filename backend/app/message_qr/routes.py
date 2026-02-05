@@ -1,5 +1,3 @@
-print("MESSAGE QR ROUTES LOADED")
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -27,7 +25,7 @@ BASE_URL = os.getenv("BASE_URL")
 if not BASE_URL:
     raise RuntimeError("BASE_URL environment variable is not set")
 
-@router.post("/", response_model=MessageQRResponse)
+@router.post("", response_model=MessageQRResponse)
 async def create_message_qr(
     data: MessageQRCreate,
     db: AsyncSession = Depends(get_db),
