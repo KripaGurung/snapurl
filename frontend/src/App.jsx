@@ -4,6 +4,7 @@ import Navbar from './components/Navbar.jsx';
 import Login from './pages/login.jsx';
 import Signup from './pages/signup.jsx';
 import CreateUrl from './pages/createUrl.jsx';
+import MessageView from './pages/MessageView.jsx';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/m/:token" element={<MessageView />} />
       </Routes>
     </>
   );
