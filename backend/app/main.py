@@ -70,17 +70,28 @@ async def redirect_qr_token(
     db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(
-        select(models.QRToken).where(models.QRToken.token == token)
+        select(
+            models.ShortURL.original_url,
+            models.QRToken.expires_at
+        )
+        .join(
+            models.QRToken,
+            models.QRToken.short_url_id == models.ShortURL.id
+        )
+        .where(models.QRToken.token == token)
     )
-    qr = result.scalar_one_or_none()
 
-    if not qr:
+    row = result.first()
+
+    if not row:
         raise HTTPException(status_code=404, detail="Invalid QR code")
 
-    if qr.expires_at and qr.expires_at < datetime.now(timezone.utc):
+    original_url, expires_at = row
+
+    if expires_at and expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=410, detail="QR code expired")
 
-    return RedirectResponse(qr.short_url.original_url, status_code=302)
+    return RedirectResponse(original_url, status_code=302)
 
 
 if __name__ == "__main__":
