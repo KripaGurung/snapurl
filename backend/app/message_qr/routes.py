@@ -16,7 +16,7 @@ from ..auth.deps import get_current_user
 from ..models import User
 
 router = APIRouter(
-    prefix="/message-qr/messages",
+    prefix="/messages",
     tags=["Message QR"]
 )
 
