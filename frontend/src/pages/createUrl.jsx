@@ -11,8 +11,10 @@ function CreateUrl() {
   const [shortCode, setShortCode] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [qrImage, setQrImage] = useState(null);
+
   const [msgType, setMsgType] = useState("");
   const [msgContent, setMsgContent] = useState("");
+
   const navigate = useNavigate();
   const { token } = useAuth();
 
@@ -24,10 +26,9 @@ function CreateUrl() {
     }
 
     try {
-      const res = await api.post(
-        "/shortener/urls/", 
-        { original_url: url }
-      );
+      const res = await api.post("/shortener/urls/", {
+        original_url: url,
+      });
 
       setShortUrl(res.data.short_url);
       setShortCode(res.data.short_code);
@@ -40,10 +41,9 @@ function CreateUrl() {
 
   const generateQR = async () => {
     try {
-      const res = await api.get(
-        `/shortener/urls/${shortCode}/qr`,
-        { responseType: "blob" }
-      );
+      const res = await api.get(`/shortener/urls/${shortCode}/qr`, {
+        responseType: "blob",
+      });
 
       const imageURL = URL.createObjectURL(res.data);
       setQrImage(imageURL);
@@ -72,10 +72,10 @@ function CreateUrl() {
         content: msgContent,
       });
 
-      const messageId = res.data.id;
+      const token = res.data.token;
 
       const qrRes = await api.get(
-        `/message-qr/messages/${messageId}/qr`,
+        `/message-qr/messages/${token}/qr`,
         { responseType: "blob" }
       );
 
@@ -111,7 +111,9 @@ function CreateUrl() {
     <div className="app-container">
       <section className="section url-section">
         <h1>URL Shortener</h1>
-        <p className="section-desc"> Convert long URLs into short, shareable links instantly. </p>
+        <p className="section-desc">
+          Convert long URLs into short, shareable links instantly.
+        </p>
 
         <div className="container">
           <div className="card">
@@ -155,7 +157,7 @@ function CreateUrl() {
           <div className="modal">
             <h3>Do you want to generate QR?</h3>
             <div className="modal-buttons">
-              <button className="yes" onClick={generateQR}> Yes </button> 
+              <button className="yes" onClick={generateQR}> Yes </button>
               <button className="no" onClick={() => setShowModal(false)}> No </button>
             </div>
           </div>
@@ -164,16 +166,16 @@ function CreateUrl() {
 
       <section className="section message-section">
         <h1>Message QR</h1>
-        <p className="section-desc">Write a message and generate a QR code that displays it when scanned.</p>
+        <p className="section-desc"> Write a message and generate a QR code that displays it when scanned. </p>
 
         <div className="message-panel">
           <div className="message-actions">
-            <button className={msgType === "plain" ? "active" : ""} onClick={() => setMsgType("plain")}> Plain Text </button>
-            <button className={msgType === "note" ? "active" : ""} onClick={() => setMsgType("note")}> Note </button>
-            <button className={msgType === "alert" ? "active" : ""} onClick={() => setMsgType("alert")}> Alert</button>
+            <button className={msgType === "plain" ? "active" : ""} onClick={() => setMsgType("plain")} > Plain Text </button>
+            <button className={msgType === "note" ? "active" : ""} onClick={() => setMsgType("note")} > Note </button>
+            <button className={msgType === "alert" ? "active" : ""} onClick={() => setMsgType("alert")}> Alert </button>
           </div>
 
-          <textarea className="message-input" placeholder="Add your text here..." disabled={!msgType} value={msgContent} onChange={(e) => setMsgContent(e.target.value)}/>
+          <textarea className="message-input" placeholder="Add your text here..." disabled={!msgType} value={msgContent} onChange={(e) => setMsgContent(e.target.value)} />
 
           <button className="generate-message-btn" onClick={generateMessageQR} disabled={!msgType || !msgContent.trim()}> Generate Message QR </button>
         </div>
