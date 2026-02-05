@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 
 import qrcode
@@ -39,11 +39,10 @@ async def create_message_qr(
         result = await db.execute(
             select(MessageQR).where(MessageQR.token == token)
         )
-        exists = result.scalar_one_or_none()
-        if not exists:
+        if not result.scalar_one_or_none():
             break
 
-    expires_at = datetime.utcnow() + timedelta(days=7)
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
 
     msg = MessageQR(
         token=token,
@@ -75,7 +74,7 @@ async def view_message(
     if not msg:
         raise HTTPException(status_code=404, detail="Message not found")
 
-    if msg.expires_at < datetime.utcnow():
+    if msg.expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=410, detail="QR expired")
 
     return {
@@ -97,7 +96,7 @@ async def get_message_qr_image(
     if not msg:
         raise HTTPException(status_code=404, detail="Message not found")
 
-    if msg.expires_at < datetime.utcnow():
+    if msg.expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=410, detail="QR expired")
 
     qr_url = f"{BASE_URL}/m/{token}"
