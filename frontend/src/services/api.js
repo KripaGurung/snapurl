@@ -14,7 +14,7 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("access_token");
 
-    if (token && !config.url.includes("/auth")) {
+    if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
@@ -26,7 +26,6 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    
     if (
       error.code === "ECONNABORTED" &&
       !error.config.__isRetryRequest
@@ -37,7 +36,10 @@ api.interceptors.response.use(
       return api(error.config);
     }
 
-    if (error.response?.status === 401) {
+    if (
+      error.response?.status === 401 &&
+      !error.config.url?.includes("/message-qr/messages/m/")
+    ) {
       localStorage.removeItem("access_token");
     }
 
