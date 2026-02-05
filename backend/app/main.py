@@ -1,4 +1,5 @@
-print("RUNNING backend/app/main.py")
+print("RUNNING backend/app/main.py v2")
+
 
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
