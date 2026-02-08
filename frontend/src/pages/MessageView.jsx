@@ -10,13 +10,20 @@ function MessageView() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!token) {
+      setError("Invalid message link");
+      setLoading(false);
+      return;
+    }
+
     const fetchMessage = async () => {
       try {
         const res = await api.get(
           `/message-qr/messages/m/${token}`
         );
         setMessage(res.data);
-      } catch {
+      } catch (err) {
+        console.error("Message QR fetch failed:", err);
         setError("Message not found or expired");
       } finally {
         setLoading(false);
