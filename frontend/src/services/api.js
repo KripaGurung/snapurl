@@ -10,11 +10,19 @@ const api = axios.create({
   timeout: 60000,
 });
 
+const PUBLIC_ROUTES = [
+  "/message-qr/messages/m/",
+];
+
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("access_token");
 
-    if (token) {
+    const isPublicRoute = PUBLIC_ROUTES.some((route) =>
+      config.url?.includes(route)
+    );
+
+    if (token && !isPublicRoute) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
@@ -36,10 +44,11 @@ api.interceptors.response.use(
       return api(error.config);
     }
 
-    if (
-      error.response?.status === 401 &&
-      !error.config.url?.includes("/message-qr/messages/m/")
-    ) {
+    const isPublicRoute = PUBLIC_ROUTES.some((route) =>
+      error.config.url?.includes(route)
+    );
+
+    if (error.response?.status === 401 && !isPublicRoute) {
       localStorage.removeItem("access_token");
     }
 
