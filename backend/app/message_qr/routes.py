@@ -20,10 +20,10 @@ router = APIRouter(
     tags=["Message QR"]
 )
 
-BASE_URL = os.getenv("BASE_URL")
+FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL")
 
-if not BASE_URL:
-    raise RuntimeError("BASE_URL environment variable is not set")
+if not FRONTEND_BASE_URL:
+    raise RuntimeError("FRONTEND_BASE_URL environment variable is not set")
 
 @router.post("", response_model=MessageQRResponse)
 async def create_message_qr(
@@ -58,24 +58,26 @@ async def create_message_qr(
 
     return {
         "token": token,
-        "qr_url": f"{BASE_URL}/m/{token}"
+        "qr_url": f"{FRONTEND_BASE_URL}/m/{token}"
     }
 
-@router.get("/m/{token}")
+@router.get("/m/{token}", response_model=MessageQRResponse)
 async def view_message(
     token: str,
     db: AsyncSession = Depends(get_db)
 ):
+    now = datetime.now(timezone.utc)
+
     result = await db.execute(
-        select(MessageQR).where(MessageQR.token == token)
+        select(MessageQR).where(
+            MessageQR.token == token,
+            MessageQR.expires_at > now
+        )
     )
     msg = result.scalar_one_or_none()
 
     if not msg:
-        raise HTTPException(status_code=404, detail="Message not found")
-
-    if msg.expires_at < datetime.now(timezone.utc):
-        raise HTTPException(status_code=410, detail="QR expired")
+        raise HTTPException(status_code=404, detail="Message not found or expired")
 
     return {
         "type": msg.type,
@@ -88,18 +90,20 @@ async def get_message_qr_image(
     token: str,
     db: AsyncSession = Depends(get_db)
 ):
+    now = datetime.now(timezone.utc)
+
     result = await db.execute(
-        select(MessageQR).where(MessageQR.token == token)
+        select(MessageQR).where(
+            MessageQR.token == token,
+            MessageQR.expires_at > now
+        )
     )
     msg = result.scalar_one_or_none()
 
     if not msg:
-        raise HTTPException(status_code=404, detail="Message not found")
+        raise HTTPException(status_code=404, detail="Message not found or expired")
 
-    if msg.expires_at < datetime.now(timezone.utc):
-        raise HTTPException(status_code=410, detail="QR expired")
-
-    qr_url = f"{BASE_URL}/m/{token}"
+    qr_url = f"{FRONTEND_BASE_URL}/m/{token}"
 
     qr = qrcode.make(qr_url)
     buffer = BytesIO()
