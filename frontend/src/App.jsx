@@ -10,11 +10,9 @@ function App() {
   return (
     <>
       <Routes>
-        <Route
-          path="/"
-          element={
+        <Route path="/" element={
             <>
-              <Navbar />
+              <Navbar />  
               <CreateUrl />
             </>
           }
